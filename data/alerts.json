@@ -1,0 +1,42 @@
+[
+  {
+    "alert_id": "network-001",
+    "source": "Firewall",
+    "severity": "High",
+    "description": "Potential SQL Injection attempt from IP 198.51.100.21",
+    "timestamp": "2023-10-27T10:00:00Z",
+    "asset_type": "Production DB Server",
+    "user_role": "N/A",
+    "status": "Pending"
+  },
+  {
+    "alert_id": "endpoint-002",
+    "source": "EDR",
+    "severity": "Medium",
+    "description": "Unusual process execution 'powershell.exe' on host DESKTOP-A45",
+    "timestamp": "2023-10-27T10:05:00Z",
+    "asset_type": "Standard Workstation",
+    "user_role": "Marketing",
+    "status": "Pending"
+  },
+  {
+    "alert_id": "cloud-003",
+    "source": "CSPM",
+    "severity": "Low",
+    "description": "S3 bucket 'customer-data-backup' has public read access",
+    "timestamp": "2023-10-27T10:10:00Z",
+    "asset_type": "Cloud Storage",
+    "user_role": "DevOps",
+    "status": "Pending"
+  },
+  {
+    "alert_id": "endpoint-004",
+    "source": "EDR",
+    "severity": "High",
+    "description": "Ransomware behavior detected on host SRV-FINANCE-01",
+    "timestamp": "2023-10-27T11:00:00Z",
+    "asset_type": "Critical File Server",
+    "user_role": "Finance",
+    "status": "Pending"
+  }
+]

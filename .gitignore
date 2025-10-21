@@ -1,0 +1,18 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment folders
+venv/
+.venv/
+env/
+.env/
+
+# Large data files and generated models
+# We include the scripts to generate these, not the files themselves.
+data/training_alerts.csv
+data/soar.db
+risk_model.joblib
+
+# VS Code settings
+.vscode/

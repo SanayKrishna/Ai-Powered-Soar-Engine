@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOAR Analytics Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* --- ROOT: Refined Color Palette & Global Variables --- */
+    :root {
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+        /* Primary colors for branding and actions */
+        --brand-primary: hsl(221, 83%, 53%);
+        --brand-primary-dark: hsl(222, 77%, 41%);
+        --brand-primary-light: hsl(221, 100%, 97%);
+        --gradient-brand: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+
+        /* Semantic colors for status indicators */
+        --status-critical: hsl(0, 72%, 51%);
+        --status-critical-dark: hsl(0, 74%, 42%);
+        --status-critical-light: hsl(0, 86%, 97%);
+        --status-high: hsl(35, 92%, 52%);
+        --status-high-dark: hsl(25, 92%, 48%);
+        --status-high-light: hsl(40, 95%, 96%);
+        --status-medium: hsl(152, 63%, 42%);
+        --status-medium-dark: hsl(153, 66%, 34%);
+        --status-medium-light: hsl(150, 70%, 96%);
+
+        /* Neutral colors for UI surfaces and text */
+        --surface-app: hsl(220, 25%, 98%);
+        --surface-1: hsl(0, 0%, 100%);
+        --surface-2: hsl(220, 20%, 96%);
+        --border-subtle: hsl(220, 18%, 92%);
+        --border-interactive: hsl(220, 16%, 88%);
+
+        --text-strong: hsl(220, 25%, 10%);
+        --text-default: hsl(220, 14%, 30%);
+        --text-muted: hsl(220, 10%, 50%);
+
+        /* --- Refined Shadow System for better depth --- */
+        --shadow-1: 0 1px 2px rgba(30, 41, 59, 0.05);
+        --shadow-2: 0 3px 6px -1px rgba(30, 41, 59, 0.08);
+        --shadow-3: 0 10px 20px -8px rgba(30, 41, 59, 0.12);
+        --shadow-4: 0 20px 40px -16px rgba(30, 41, 59, 0.18);
+
+        /* UI metrics */
+        --radius-sm: 6px;
+        --radius: 12px;
+        --radius-lg: 16px;
+        --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+    }
+
+    /* --- GLOBAL STYLES: Smoother scrolling and better typography --- */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font-sans);
+        background: var(--surface-app);
+        color: var(--text-default);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3 {
+        margin: 0;
+        font-weight: 700;
+        color: var(--text-strong);
+        text-wrap: balance; /* Prevents awkward single-word lines */
+    }
+
+    a {
+        color: var(--brand-primary);
+        text-decoration: none;
+    }
+
+    /* --- NAVIGATION BAR --- */
+    nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: hsla(0, 0%, 100%, 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border-bottom: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-2);
+        transition: box-shadow 0.3s ease;
+    }
+
+    nav:hover {
+        box-shadow: var(--shadow-3);
+    }
+
+    .nav-content {
+        max-width: 1800px;
+        margin: 0 auto;
+        padding: 1.1rem 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        font-size: 1.5rem;
+        letter-spacing: -0.5px;
+        font-weight: 800;
+        color: var(--text-strong);
+        text-decoration: none;
+    }
+
+    .brand-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-sm);
+        background: var(--gradient-brand);
+        box-shadow: var(--shadow-2);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        transition: var(--transition);
+    }
+
+    .brand-icon i {
+        font-size: 1.1rem;
+    }
+
+    .brand:hover .brand-icon {
+        transform: rotate(-8deg) scale(1.1);
+        box-shadow: var(--shadow-3);
+    }
+
+    .last-updated {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        padding: 0.4rem 0.8rem;
+        background: var(--surface-2);
+        border-radius: var(--radius-sm);
+    }
+
+    .last-updated::before {
+        content: '';
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--status-medium);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* --- BUTTONS: Clearer focus and active states --- */
+    .btn {
+        border: 1px solid var(--border-interactive);
+        border-radius: var(--radius-sm);
+        padding: 0.6rem 1.1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        transition: all 0.15s ease-out;
+        box-shadow: var(--shadow-1);
+        background: var(--surface-1);
+        color: var(--text-strong);
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-2);
+    }
+
+    /* Enhanced focus state for accessibility */
+    .btn:focus-visible {
+        outline: 2px solid var(--brand-primary);
+        outline-offset: 2px;
+    }
+
+    .btn:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-1);
+    }
+
+    .btn-accent {
+        background: var(--gradient-brand);
+        color: #fff;
+        border: none;
+    }
+
+    .btn-accent i {
+        transition: transform 0.8s ease;
+    }
+
+    .btn-accent.is-loading i {
+        animation: spin 1s linear infinite;
+    }
+
+    /* --- LAYOUT & CARD STYLES --- */
+    .container {
+        max-width: 1800px;
+        margin: 0 auto;
+        padding: 2.5rem 2rem 3.5rem;
+        display: grid;
+        gap: 2.5rem;
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .card {
+        position: relative;
+        background: var(--surface-1);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-2);
+        padding: 1.9rem;
+        transition: var(--transition);
+        overflow: hidden;
+    }
+
+    /* A more subtle hover effect */
+    .card::before {
+        content: '';
+        position: absolute;
+        inset: -1px; /* Cover the border */
+        border-radius: inherit;
+        background: radial-gradient(80% 80% at 100% 0%, hsla(221, 83%, 53%, 0.1), transparent 50%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-3);
+        border-color: hsla(221, 83%, 53%, 0.4);
+    }
+
+    .card:hover::before {
+        opacity: 1;
+    }
+
+    .kpi-card .header,
+    .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.4rem;
+        gap: 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+        padding-bottom: 1rem;
+    }
+    
+    .chart-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .icon-ring {
+        width: 48px;
+        height: 48px;
+        border-radius: var(--radius);
+        display: grid;
+        place-items: center;
+        background: var(--brand-primary-light);
+        color: var(--brand-primary);
+        font-size: 1.25rem;
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+
+    .card:hover .icon-ring {
+        transform: scale(1.1) rotate(6deg);
+        background: var(--brand-primary);
+        color: #fff;
+    }
+
+    .kpi-card .value {
+        font-size: clamp(2.2rem, 4vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -1px;
+        color: var(--text-strong);
+    }
+
+    .kpi-card .label {
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        letter-spacing: 0.08em;
+    }
+
+    .kpi-card .trend {
+        margin-top: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.35rem 0.8rem;
+        border-radius: var(--radius-sm);
+    }
+
+    .trend.up {
+        color: var(--status-critical);
+        background: var(--status-critical-light);
+    }
+
+    .trend.down {
+        color: var(--status-medium);
+        background: var(--status-medium-light);
+    }
+
+    .kpi-card.critical .value {
+        color: var(--status-critical);
+    }
+
+    /* --- MAIN DASHBOARD AREA --- */
+    .dashboard {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 400px);
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .sidebar {
+        display: grid;
+        gap: 2rem;
+    }
+
+    /* --- FORMS & FILTERS --- */
+    .filter-bar {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        padding: 1.5rem;
+        background: var(--surface-2);
+        border-radius: var(--radius);
+        margin-top: 1.5rem;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .filter-group label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 700;
+        color: var(--text-muted);
+    }
+
+    .filter-group select,
+    .filter-group input {
+        appearance: none;
+        border: 1px solid var(--border-interactive);
+        border-radius: var(--radius-sm);
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: var(--surface-1);
+        color: var(--text-strong);
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .filter-group select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+    }
+    
+    .filter-group input[type="search"] {
+        padding-left: 2.5rem;
+    }
+
+    /* Enhanced focus state for inputs */
+    .filter-group select:focus,
+    .filter-group input:focus {
+        outline: none;
+        border-color: var(--brand-primary);
+        box-shadow: 0 0 0 3px hsla(221, 83%, 53%, 0.15);
+    }
+
+    .search-group {
+        position: relative;
+    }
+
+    .search-group i {
+        position: absolute;
+        top: calc(50% + 0.6rem); /* Adjust for label height */
+        left: 0.9rem;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none; /* Make icon non-interactive */
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-self: end;
+        justify-content: flex-start;
+    }
+
+    /* --- TABLE STYLES: Cleaner header and hover state --- */
+    .table-shell {
+        border-radius: var(--radius);
+        border: 1px solid var(--border-subtle);
+        overflow-x: auto;
+        background: var(--surface-1);
+        margin-top: 1.5rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        text-align: left;
+        background: var(--surface-2);
+        padding: 1rem 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        border-bottom: 2px solid var(--border-subtle);
+    }
+
+    tbody tr {
+        transition: background-color 0.15s ease;
+    }
+
+    tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    /* Improved hover state - no layout shift */
+    tbody tr:hover {
+        background: var(--brand-primary-light);
+    }
+
+    td {
+        padding: 1rem 1.2rem;
+        color: var(--text-default);
+        font-weight: 500;
+        vertical-align: middle; /* Center content vertically */
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .risk-score {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+        padding: 0.4rem 0.8rem;
+        border-radius: var(--radius-sm);
+        color: #fff;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        box-shadow: var(--shadow-1);
+    }
+
+    .risk-critical {
+        background: linear-gradient(135deg, var(--status-critical), var(--status-critical-dark));
+    }
+
+    .risk-high {
+        background: linear-gradient(135deg, var(--status-high), var(--status-high-dark));
+    }
+
+    .risk-medium {
+        background: linear-gradient(135deg, var(--status-medium), var(--status-medium-dark));
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        border-radius: 999px;
+        padding: 0.3rem 0.8rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .status-badge .indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status-active {
+        color: var(--status-high);
+        background: var(--status-high-light);
+    }
+
+    .status-resolved {
+        color: var(--status-medium);
+        background: var(--status-medium-light);
+    }
+
+    ul.action-list {
+        margin: 0;
+        padding-left: 1.2rem;
+        display: grid;
+        gap: 0.3rem;
+        font-size: 0.85rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3.5rem 1rem;
+        color: var(--text-muted);
+    }
+
+    .empty-state i {
+        font-size: 3.2rem;
+        color: rgba(100, 116, 139, 0.25);
+        margin-bottom: 1rem;
+    }
+
+    /* --- SIDEBAR & CHARTS --- */
+    .doughnut-wrapper {
+        position: relative;
+        height: 320px;
+        display: grid;
+        place-items: center;
+    }
+    
+    .doughnut-center {
+        position: absolute;
+        text-align: center;
+        pointer-events: none;
+    }
+
+    .doughnut-center .value {
+        font-size: clamp(2.2rem, 4vw, 3rem);
+        font-weight: 800;
+        color: var(--text-strong);
+    }
+
+    .doughnut-center .label {
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+    }
+
+    .legend {
+        list-style: none;
+        margin: 1.5rem 0 0;
+        padding: 0;
+        display: grid;
+        gap: 0.8rem;
+    }
+
+    .legend li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-radius: var(--radius-sm);
+        padding: 0.75rem 0.9rem;
+        background: var(--surface-2);
+        transition: var(--transition);
+        cursor: pointer;
+        font-weight: 600;
+    }
+
+    .legend li:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow-2);
+        background: var(--surface-1);
+    }
+    
+    .legend .label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .legend .swatch {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        box-shadow: var(--shadow-1);
+        border: 1px solid var(--border-subtle);
+    }
+
+    .legend .count {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text-strong);
+    }
+
+    /* --- ACTIVITY LOG: Added custom scrollbar --- */
+    .activity-log {
+        display: grid;
+        gap: 0.9rem;
+        max-height: 480px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    /* Custom Scrollbar for a polished look */
+    .activity-log::-webkit-scrollbar {
+        width: 6px;
+    }
+    .activity-log::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .activity-log::-webkit-scrollbar-thumb {
+        background: var(--border-interactive);
+        border-radius: 10px;
+    }
+    .activity-log::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }
+
+    .activity-item {
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        gap: 1rem;
+        padding: 1rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--border-subtle);
+        background: var(--surface-1);
+        transition: var(--transition);
+    }
+
+    .activity-item:hover {
+        transform: translateX(4px);
+        box-shadow: var(--shadow-2);
+        border-color: var(--border-interactive);
+    }
+    
+    .activity-icon {
+        width: 100%;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: var(--radius);
+        font-size: 1.1rem;
+        box-shadow: var(--shadow-1);
+        background: var(--surface-2);
+        transition: var(--transition);
+    }
+
+    .activity-item:hover .activity-icon {
+        transform: scale(1.05) rotate(3deg);
+    }
+
+    /* --- FIX: Added styles for activity icon severity --- */
+    .activity-icon.critical {
+        background: var(--status-critical-light);
+        color: var(--status-critical);
+    }
+
+    .activity-icon.high {
+        background: var(--status-high-light);
+        color: var(--status-high);
+    }
+
+    .activity-icon.medium {
+        background: var(--status-medium-light);
+        color: var(--status-medium);
+    }
+
+    .activity-title {
+        font-size: 0.94rem;
+        font-weight: 700;
+        color: var(--text-strong);
+    }
+
+    .activity-description {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+    }
+
+    .activity-time {
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        margin-top: 0.25rem;
+    }
+
+    /* --- ANIMATIONS --- */
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.45; }
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* --- RESPONSIVE MEDIA QUERIES --- */
+    @media (max-width: 1200px) {
+        .dashboard {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1.8rem 1rem 2.5rem;
+        }
+        .nav-content {
+            padding: 1rem;
+        }
+        .brand {
+            font-size: 1.35rem;
+        }
+        .filter-actions {
+            flex-direction: column;
+            width: 100%;
+            align-self: initial;
+        }
+        .filter-actions .btn {
+            width: 100%;
+        }
+        .search-group i {
+            top: calc(50% + 0.5rem);
+        }
+    }
+</style>
+</head>
+<body>
+<nav>
+    <div class="nav-content">
+        <a href="#" class="brand">
+            <span class="brand-icon"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+            <span>SOAR Analytics</span>
+        </a>
+        <div class="nav-actions">
+            <span class="last-updated" id="last-updated">Last updated: --</span>
+            <button type="button" class="btn btn-accent" id="refresh-btn">
+                <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+                <span>Refresh Data</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<main class="container">
+    <section class="kpi-grid">
+        <article class="card kpi-card">
+            <div class="header">
+                <span class="icon-ring"><i class="fa-solid fa-list-check" aria-hidden="true"></i></span>
+            </div>
+            <div id="total-incidents" class="value">--</div>
+            <span class="label">Total Incidents</span>
+            <span class="trend up">
+                <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+                12% from last week
+            </span>
+        </article>
+
+        <article class="card kpi-card critical">
+            <div class="header">
+                <span class="icon-ring"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+            </div>
+            <div id="critical-incidents" class="value">--</div>
+            <span class="label">Critical Risk</span>
+            <span class="trend down">
+                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                8% from yesterday
+            </span>
+        </article>
+
+        <article class="card kpi-card">
+            <div class="header">
+                <span class="icon-ring"><i class="fa-solid fa-gauge-high" aria-hidden="true"></i></span>
+            </div>
+            <div id="avg-risk-score" class="value">--</div>
+            <span class="label">Avg Risk Score</span>
+            <span class="trend up">
+                <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+                5% from last week
+            </span>
+        </article>
+
+        <article class="card kpi-card">
+            <div class="header">
+                <span class="icon-ring"><i class="fa-solid fa-clock" aria-hidden="true"></i></span>
+            </div>
+            <div id="avg-response-time" class="value">2.4h</div>
+            <span class="label">Avg Response Time</span>
+            <span class="trend down">
+                <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+                15% faster
+            </span>
+        </article>
+    </section>
+
+    <section class="dashboard">
+        <div class="main-content">
+            <article class="card">
+                <div class="chart-header">
+                    <span class="icon-ring"><i class="fa-solid fa-table-list" aria-hidden="true"></i></span>
+                    <h2>Active Incidents</h2>
+                    <span class="incident-count" id="incident-count">0 incidents</span>
+                </div>
+
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label for="filter-severity">Severity</label>
+                        <select id="filter-severity">
+                            <option value="all">All Severity</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-source">Source</label>
+                        <select id="filter-source">
+                            <option value="all">All Sources</option>
+                            <option value="Firewall">Firewall</option>
+                            <option value="EDR">EDR</option>
+                            <option value="CSPM">CSPM</option>
+                            <option value="IDS">IDS</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-asset">Asset Type</label>
+                        <select id="filter-asset">
+                            <option value="all">All Assets</option>
+                            <option value="Server">Server</option>
+                            <option value="Workstation">Workstation</option>
+                            <option value="Cloud Storage">Cloud Storage</option>
+                            <option value="Network">Network</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group search-group">
+                        <label for="search-incidents">Search</label>
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <input id="search-incidents" type="search" placeholder="Search incidents...">
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="button" class="btn" id="clear-filters">
+                            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                            Clear
+                        </button>
+                        <button type="button" class="btn btn-accent" id="export-btn">
+                            <i class="fa-solid fa-download" aria-hidden="true"></i>
+                            Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-shell">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Risk Score</th>
+                                <th>Status</th>
+                                <th>Source</th>
+                                <th>Asset Type</th>
+                                <th>Description</th>
+                                <th>Actions Taken</th>
+                            </tr>
+                        </thead>
+                        <tbody id="incidents-tbody">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <i class="fa-solid fa-inbox" aria-hidden="true"></i>
+                                        <h3>No incidents yet</h3>
+                                        <p>Loading incident data...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </div>
+
+        <div class="sidebar">
+            <article class="card">
+                <div class="chart-header">
+                    <div class="icon-ring"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+                    <h2>Alerts by Severity</h2>
+                </div>
+                <div class="doughnut-wrapper">
+                    <div class="doughnut-center">
+                        <div id="doughnut-total" class="value">--</div>
+                        <span class="label">Total Alerts</span>
+                    </div>
+                    <canvas id="severityChart" aria-label="Alerts by severity"></canvas>
+                </div>
+                <ul class="legend" id="severity-legend"></ul>
+            </article>
+
+            <article class="card">
+                <div class="chart-header">
+                    <div class="icon-ring"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></div>
+                    <h2>Recent Activity</h2>
+                </div>
+                <div class="activity-log" id="activity-log"></div>
+            </article>
+        </div>
+    </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const elements = {
+        totalIncidents: document.getElementById('total-incidents'),
+        criticalIncidents: document.getElementById('critical-incidents'),
+        avgRiskScore: document.getElementById('avg-risk-score'),
+        incidentCount: document.getElementById('incident-count'),
+        incidentsTable: document.getElementById('incidents-tbody'),
+        doughnutTotal: document.getElementById('doughnut-total'),
+        severityLegend: document.getElementById('severity-legend'),
+        activityLog: document.getElementById('activity-log'),
+        lastUpdated: document.getElementById('last-updated'),
+        refreshBtn: document.getElementById('refresh-btn'),
+        filterSeverity: document.getElementById('filter-severity'),
+        filterSource: document.getElementById('filter-source'),
+        filterAsset: document.getElementById('filter-asset'),
+        searchInput: document.getElementById('search-incidents'),
+        clearFilters: document.getElementById('clear-filters'),
+        exportBtn: document.getElementById('export-btn')
+    };
+
+    // FIX: Updated palette to use HSL to match CSS variables for consistency
+    const palette = {
+        High: 'hsl(0, 72%, 51%)',     // Matches --status-critical
+        Medium: 'hsl(35, 92%, 52%)',  // Matches --status-high
+        Low: 'hsl(152, 63%, 42%)'     // Matches --status-medium
+    };
+
+    const state = {
+        incidents: [
+            { risk_score: 92, source: 'Firewall', asset_type: 'Server', description: 'Suspicious outbound connection detected', actions_taken: ['Blocked IP address', 'Notified security team'], status: 'active' },
+            { risk_score: 78, source: 'EDR', asset_type: 'Workstation', description: 'Potential malware execution', actions_taken: ['Quarantined file', 'Initiated scan'], status: 'resolved' },
+            { risk_score: 65, source: 'CSPM', asset_type: 'Cloud Storage', description: 'Misconfigured bucket permissions', actions_taken: ['Updated permissions', 'Logged event'], status: 'active' },
+            { risk_score: 88, source: 'IDS', asset_type: 'Network', description: 'DDoS attack detected', actions_taken: ['Activated DDoS protection', 'Notified NOC'], status: 'active' },
+            { risk_score: 45, source: 'IDS', asset_type: 'Network', description: 'Port scan detected', actions_taken: ['Logged activity'], status: 'resolved' },
+            { risk_score: 70, source: 'Firewall', asset_type: 'Server', description: 'Multiple failed login attempts', actions_taken: ['Locked account', 'Sent alert'], status: 'active' },
+            { risk_score: 95, source: 'EDR', asset_type: 'Server', description: 'Ransomware activity detected', actions_taken: ['Isolated system', 'Emergency response triggered'], status: 'active' },
+            { risk_score: 55, source: 'CSPM', asset_type: 'Cloud Storage', description: 'Unusual data access pattern', actions_taken: ['Monitored activity'], status: 'resolved' }
+        ],
+        activities: [
+            { level: 'critical', title: 'Critical Alert Resolved', description: 'Ransomware incident on Server-A01', time: '2 minutes ago' },
+            { level: 'high', title: 'Investigation Started', description: 'Multiple failed login attempts', time: '15 minutes ago' },
+            { level: 'medium', title: 'Policy Updated', description: 'Cloud storage permissions revised', time: '1 hour ago' },
+            { level: 'critical', title: 'Threat Blocked', description: 'Suspicious outbound connection', time: '2 hours ago' },
+            { level: 'medium', title: 'Scan Completed', description: 'EDR full system scan on WS-B12', time: '3 hours ago' },
+            { level: 'high', title: 'DDoS Mitigated', description: 'Network attack successfully blocked', time: '4 hours ago' }
+        ],
+        severitySummary: [
+            { severity: 'High', count: 15 },
+            { severity: 'Medium', count: 28 },
+            { severity: 'Low', count: 25 }
+        ],
+        filteredIncidents: [],
+        chart: null
+    };
+
+    const getSeverity = score => (score > 85 ? 'High' : score > 60 ? 'Medium' : 'Low');
+
+    const formatRiskClass = score => {
+        const severity = getSeverity(score);
+        if (severity === 'High') return 'risk-critical';
+        if (severity === 'Medium') return 'risk-high';
+        return 'risk-medium';
+    };
+
+    const setLastUpdated = () => {
+        const now = new Date();
+        elements.lastUpdated.textContent = `Last updated: ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    };
+
+    const renderKPIs = () => {
+        const total = state.incidents.length;
+        const critical = state.incidents.filter(i => getSeverity(i.risk_score) === 'High').length;
+        const avg = total ? Math.round(state.incidents.reduce((sum, i) => sum + i.risk_score, 0) / total) : 0;
+
+        elements.totalIncidents.textContent = total;
+        elements.criticalIncidents.textContent = critical;
+        elements.avgRiskScore.textContent = avg;
+    };
+
+    const renderIncidents = incidents => {
+        elements.incidentCount.textContent = `${incidents.length} incident${incidents.length === 1 ? '' : 's'}`;
+
+        if (!incidents.length) {
+            elements.incidentsTable.innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-inbox" aria-hidden="true"></i>
+                            <h3>No incidents found</h3>
+                            <p>Try adjusting your filters</p>
+                        </div>
+                    </td>
+                </tr>`;
+            return;
+        }
+
+        elements.incidentsTable.innerHTML = incidents.map(incident => `
+            <tr>
+                <td><span class="risk-score ${formatRiskClass(incident.risk_score)}">${incident.risk_score}</span></td>
+                <td>
+                    <span class="status-badge status-${incident.status}">
+                        <span class="indicator"></span>
+                        ${incident.status === 'active' ? 'Active' : 'Resolved'}
+                    </span>
+                </td>
+                <td>${incident.source}</td>
+                <td>${incident.asset_type}</td>
+                <td>${incident.description}</td>
+                <td>
+                    <ul class="action-list">
+                        ${incident.actions_taken.map(action => `<li>${action}</li>`).join('')}
+                    </ul>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    const renderLegend = () => {
+        elements.severityLegend.innerHTML = '';
+        state.severitySummary.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span class="label">
+                    <span class="swatch" style="background:${palette[item.severity] ?? '#64748b'}"></span>
+                    ${item.severity}
+                </span>
+                <span class="count">${item.count}</span>`;
+            elements.severityLegend.appendChild(li);
+        });
+    };
+
+    // FIX: Using dynamic icons for better visual feedback
+    const getActivityIcon = (level) => {
+        switch (level) {
+            case 'critical': return 'fa-triangle-exclamation';
+            case 'high': return 'fa-shield-halved';
+            case 'medium': return 'fa-check';
+            default: return 'fa-info-circle';
+        }
+    };
+
+    const renderActivity = () => {
+        elements.activityLog.innerHTML = state.activities.map(activity => `
+            <div class="activity-item">
+                <div class="activity-icon ${activity.level}">
+                    <i class="fa-solid ${getActivityIcon(activity.level)}" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div class="activity-title">${activity.title}</div>
+                    <div class="activity-description">${activity.description}</div>
+                    <div class="activity-time">
+                        <i class="fa-solid fa-clock" aria-hidden="true"></i>${activity.time}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    };
+    
+    const renderChart = () => {
+        const ctx = document.getElementById('severityChart').getContext('2d');
+        const total = state.severitySummary.reduce((sum, item) => sum + item.count, 0);
+        elements.doughnutTotal.textContent = total;
+
+        if (state.chart) {
+            state.chart.destroy();
+        }
+
+        state.chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: state.severitySummary.map(item => item.severity),
+                datasets: [{
+                    data: state.severitySummary.map(item => item.count),
+                    backgroundColor: state.severitySummary.map(item => palette[item.severity] ?? '#64748b'),
+                    borderColor: 'var(--surface-1)',
+                    borderWidth: 4,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        borderRadius: 8,
+                        padding: 12,
+                        titleFont: { weight: '700', size: 13, family: 'Inter' },
+                        bodyFont: { weight: '600', size: 12, family: 'Inter' },
+                        displayColors: false
+                    }
+                }
+            }
+        });
+    };
+
+    const applyFilters = () => {
+        const severity = elements.filterSeverity.value;
+        const source = elements.filterSource.value;
+        const asset = elements.filterAsset.value;
+        const term = elements.searchInput.value.trim().toLowerCase();
+
+        state.filteredIncidents = state.incidents.filter(incident => {
+            const matchesSeverity = severity === 'all' || getSeverity(incident.risk_score).toLowerCase() === severity;
+            const matchesSource = source === 'all' || incident.source === source;
+            const matchesAsset = asset === 'all' || incident.asset_type === asset;
+            const matchesTerm = !term || [incident.description, incident.source, incident.asset_type]
+                .some(field => field.toLowerCase().includes(term));
+            return matchesSeverity && matchesSource && matchesAsset && matchesTerm;
+        });
+
+        renderIncidents(state.filteredIncidents);
+    };
+
+    const clearFilters = () => {
+        elements.filterSeverity.value = 'all';
+        elements.filterSource.value = 'all';
+        elements.filterAsset.value = 'all';
+        elements.searchInput.value = '';
+        applyFilters();
+    };
+
+    const exportData = () => {
+        if (!state.filteredIncidents.length) {
+            alert("No data to export. Try clearing your filters.");
+            return;
+        }
+        const header = ['Risk Score', 'Status', 'Source', 'Asset Type', 'Description', 'Actions Taken'];
+        const rows = state.filteredIncidents.map(incident => [
+            incident.risk_score,
+            incident.status,
+            incident.source,
+            incident.asset_type,
+            `"${incident.description.replace(/"/g, '""')}"`,
+            `"${incident.actions_taken.join('; ').replace(/"/g, '""')}"`
+        ].join(','));
+
+        const csv = [header.join(','), ...rows].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'incidents_export.csv';
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(url);
+    };
+
+    const refreshDashboard = () => {
+        const icon = elements.refreshBtn.querySelector('i');
+        elements.refreshBtn.classList.add('is-loading');
+        icon.style.transform = `rotate(${ (parseInt(icon.style.transform.replace('rotate(','').replace('deg)','')) || 0) + 360}deg)`;
+        
+        setTimeout(() => {
+            setLastUpdated();
+            renderKPIs();
+            applyFilters();
+            renderChart();
+            renderLegend();
+            elements.refreshBtn.classList.remove('is-loading');
+        }, 850);
+    };
+
+    // Initial load and event listeners
+    [elements.filterSeverity, elements.filterSource, elements.filterAsset].forEach(control =>
+        control.addEventListener('change', applyFilters)
+    );
+    elements.searchInput.addEventListener('input', applyFilters);
+    elements.clearFilters.addEventListener('click', clearFilters);
+    elements.exportBtn.addEventListener('click', exportData);
+    elements.refreshBtn.addEventListener('click', refreshDashboard);
+
+    renderKPIs();
+    renderActivity();
+    renderLegend();
+    applyFilters();
+    renderChart();
+    setLastUpdated();
+});
+</script>
+</body>
+</html>
