@@ -1,4 +1,4 @@
-# 🤖 AI-Powered SOAR Engine
+# AI-Powered SOAR Engine
 *A Modern Security Orchestration, Automation, and Response (SOAR) Platform Prototype*
 
 ### Overview
@@ -6,16 +6,16 @@ The **AI-Powered SOAR Engine** is a next-generation cybersecurity automation pla
 
 ---
 
-### ✨ Key Highlights
-- 🧠 **AI-Driven Risk Prioritization** – Uses a trained `RandomForestClassifier` to assign precise risk scores, distinguishing genuine threats from noise.
-- ⚙️ **Dynamic Playbook Automation** – Executes tailored response workflows based on predicted alert severity, enabling adaptive orchestration.
-- 💬 **Real-Time SOC Integration** – Pushes formatted incident alerts directly to **Slack** channels for instant team awareness.
-- 📊 **Interactive Analytics Dashboard** – Built with Flask and Chart.js, the dashboard delivers live KPIs, risk trends, and an intuitive incident queue.
-- 🗄️ **Persistent Incident Logging** – Maintains a detailed SQLite-based audit trail of alerts and actions.
+###  Key Highlights
+-  **AI-Driven Risk Prioritization** – Uses a trained `RandomForestClassifier` to assign precise risk scores, distinguishing genuine threats from noise.
+-  **Dynamic Playbook Automation** – Executes tailored response workflows based on predicted alert severity, enabling adaptive orchestration.
+-  **Real-Time SOC Integration** – Pushes formatted incident alerts directly to **Slack** channels for instant team awareness.
+-  **Interactive Analytics Dashboard** – Built with Flask and Chart.js, the dashboard delivers live KPIs, risk trends, and an intuitive incident queue.
+-  **Persistent Incident Logging** – Maintains a detailed SQLite-based audit trail of alerts and actions.
 
 ---
 
-### 🛠️ Technology Stack
+###  Technology Stack
 *   **Backend:** Python · Flask · Pandas · Scikit-learn · Joblib
 *   **Frontend:** HTML5 · CSS3 · JavaScript · Chart.js
 *   **Database:** SQLite
@@ -23,7 +23,7 @@ The **AI-Powered SOAR Engine** is a next-generation cybersecurity automation pla
 
 ---
 
-### 🚀 Getting Started
+###  Getting Started
 
 #### Prerequisites
 - Python **3.8+**
@@ -81,13 +81,13 @@ The **AI-Powered SOAR Engine** is a next-generation cybersecurity automation pla
 
 ---
 
-### 🌐 Project Workflow
-- 📥 **Alert Ingestion** – Simulates data from sources like EDRs, Firewalls, and CSPM tools.
-- 🧠 **AI Prioritization** – Assigns a risk score (1–100) for each alert using the trained model.
-- ⚙️ **Automated Orchestration** – Conditional playbooks determine the appropriate response workflow.
-- 🎬 **Response Execution** – Executes actions such as ticket creation, Slack alerts, or endpoint isolation.
-- 🗄️ **Persistent Logging** – All incidents and actions are recorded in SQLite for a full audit trail.
-- 📊 **Visualization** – Real-time results are displayed on the interactive dashboard.
+###  Project Workflow
+-  **Alert Ingestion** – Simulates data from sources like EDRs, Firewalls, and CSPM tools.
+-  **AI Prioritization** – Assigns a risk score (1–100) for each alert using the trained model.
+-  **Automated Orchestration** – Conditional playbooks determine the appropriate response workflow.
+-  **Response Execution** – Executes actions such as ticket creation, Slack alerts, or endpoint isolation.
+-  **Persistent Logging** – All incidents and actions are recorded in SQLite for a full audit trail.
+-  **Visualization** – Real-time results are displayed on the interactive dashboard.
 
 ---
 
