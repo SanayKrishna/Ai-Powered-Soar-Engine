@@ -91,8 +91,8 @@ The **AI-Powered SOAR Engine** is a next-generation cybersecurity automation pla
 
 ---
 
-### 📈 Future Enhancements
-- 🔐 **Configuration Management** – Store sensitive data in a secure `config.ini` or `.env` file.
-- 🧩 **Threat Intelligence Enrichment** – Integrate APIs like VirusTotal for IOC lookups.
-- 👤 **User Authentication** – Add secure login and role-based dashboard access.
-- ☁️ **Cloud Integration** – Extend playbooks for AWS, Azure, and other cloud service providers.
+###  Future Enhancements
+-  **Configuration Management** – Store sensitive data in a secure `config.ini` or `.env` file.
+-  **Threat Intelligence Enrichment** – Integrate APIs like VirusTotal for IOC lookups.
+-  **User Authentication** – Add secure login and role-based dashboard access.
+-  **Cloud Integration** – Extend playbooks for AWS, Azure, and other cloud service providers.
