@@ -5,7 +5,8 @@ import sqlite3
 from orchestrator import run_playbook
 from database import init_db, get_all_incidents, DB_FILE
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
+
 
 SIMULATION_HAS_RUN = False
 
